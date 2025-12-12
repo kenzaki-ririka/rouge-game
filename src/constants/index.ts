@@ -41,6 +41,7 @@ export const ENTITY_CHARS = {
   POTION: '!',
   OIL: 'o',
   SHOP: '¥',
+  ARROW: '↗',
 } as const;
 
 // ==================== 颜色主题 ====================
@@ -50,7 +51,7 @@ export const COLORS = {
   WALL: '#6b4f3a',
   FLOOR: '#3d2e20',
   FOG: '#000000',
-  
+
   // 实体
   PLAYER: '#ffc107',
   ENEMY: '#f44336',
@@ -58,24 +59,28 @@ export const COLORS = {
   PORTAL: '#9c27b0',
   ITEM: '#03a9f4',
   SHOP: '#4caf50',
-  
+
   // UI
   HP_BAR: ['#d32f2f', '#f44336'],
   MP_BAR: ['#1976d2', '#2196f3'],
   TORCH_BAR: ['#f57f17', '#ffb300'],
   EXP_BAR: ['#673ab7', '#9575cd'],
-  
+
   // 日志
   LOG_PLAYER: '#90ee90',
   LOG_ENEMY: '#f08080',
   LOG_SYSTEM: '#add8e6',
   LOG_ITEM: '#ffc107',
   LOG_SKILL: '#da70d6',
-  
+
   // 效果
   EFFECT_FIRE: 'rgba(255, 100, 0, 0.4)',
   EFFECT_POISON: 'rgba(0, 255, 0, 0.3)',
   EFFECT_ICE: 'rgba(100, 200, 255, 0.4)',
+
+  // 箭矢
+  ARROW: '#8bc34a',
+  ARROW_LINE: 'rgba(139, 195, 74, 0.8)',
 } as const;
 
 // ==================== 升级经验公式 ====================
@@ -95,14 +100,16 @@ export const ITEM_EFFECTS = {
   GOLD_PER_FLOOR: 5,
   POTION_HEAL_PERCENT: 0.2,
   OIL_RESTORE_PERCENT: 0.5,
+  ARROW_PICKUP_COUNT: 3,
 } as const;
 
 // ==================== 物品生成概率 ====================
 
 export const ITEM_SPAWN_RATES = {
-  GOLD: 0.6,
-  OIL: 0.25,
+  GOLD: 0.5,
+  OIL: 0.2,
   POTION: 0.15,
+  ARROW: 0.15,
 } as const;
 
 // ==================== 默认玩家属性 ====================
@@ -110,7 +117,7 @@ export const ITEM_SPAWN_RATES = {
 export const DEFAULT_PLAYER_STATS = {
   maxHp: 200,
   maxMp: 30,
-  maxTorch: 200,
+  maxTorch: 500,
   attack: 20,
   defense: 0,
   speed: 10,
@@ -123,7 +130,14 @@ export const DEFAULT_PLAYER_STATS = {
   lifesteal: 0,
   thorns: 0,
   skillSlots: 2,
+  arrows: 5,
+  maxArrows: 20,
 } as const;
+
+// ==================== 箭矢设置 ====================
+
+export const ARROW_DAMAGE = 15;
+export const ARROW_RANGE = 8;
 
 // ==================== 属性点分配 ====================
 

@@ -1,12 +1,9 @@
 // src/core/MapGenerator.ts - 地图生成系统
 
 import { TileType, Room, Position, FovTile, Item, Enemy, Player } from '../types';
-import { 
-  MAP_WIDTH, 
-  MAP_HEIGHT, 
-  MAX_ROOMS, 
-  MIN_ROOM_SIZE, 
-  MAX_ROOM_SIZE,
+import {
+  MAP_WIDTH,
+  MAP_HEIGHT,
   FOV_RADIUS,
   ITEM_SPAWN_RATES,
 } from '../constants';
@@ -15,120 +12,219 @@ import {
  * 创建空地图（全部是墙）
  */
 export function createEmptyMap(): TileType[][] {
-  return Array.from({ length: MAP_HEIGHT }, () => 
+  return Array.from({ length: MAP_HEIGHT }, () =>
     Array(MAP_WIDTH).fill(TileType.WALL)
   );
 }
 
 /**
- * 检查两个房间是否重叠
+ * 创建全地板地图
  */
-function roomsIntersect(r1: Room, r2: Room): boolean {
-  return (
-    r1.x <= r2.x + r2.w + 1 &&
-    r1.x + r1.w + 1 >= r2.x &&
-    r1.y <= r2.y + r2.h + 1 &&
-    r1.y + r1.h + 1 >= r2.y
+function createFloorMap(): TileType[][] {
+  return Array.from({ length: MAP_HEIGHT }, () =>
+    Array(MAP_WIDTH).fill(TileType.FLOOR)
   );
 }
 
 /**
- * 获取房间中心点
+ * 添加边界墙
  */
-function getRoomCenter(room: Room): Position {
+function addBorderWalls(map: TileType[][]): void {
+  for (let x = 0; x < MAP_WIDTH; x++) {
+    map[0][x] = TileType.WALL;
+    map[MAP_HEIGHT - 1][x] = TileType.WALL;
+  }
+  for (let y = 0; y < MAP_HEIGHT; y++) {
+    map[y][0] = TileType.WALL;
+    map[y][MAP_WIDTH - 1] = TileType.WALL;
+  }
+}
+
+/**
+ * 添加随机柱子（单格墙体）
+ */
+function addRandomPillars(map: TileType[][], count: number): void {
+  let placed = 0;
+  let attempts = 0;
+  const maxAttempts = count * 10;
+
+  while (placed < count && attempts < maxAttempts) {
+    attempts++;
+    const x = Math.floor(Math.random() * (MAP_WIDTH - 4)) + 2;
+    const y = Math.floor(Math.random() * (MAP_HEIGHT - 4)) + 2;
+
+    // 确保周围不会完全被阻挡
+    if (map[y][x] === TileType.FLOOR) {
+      // 检查周围8格是否至少有6格是地板
+      let floorCount = 0;
+      for (let dy = -1; dy <= 1; dy++) {
+        for (let dx = -1; dx <= 1; dx++) {
+          if (dx === 0 && dy === 0) continue;
+          if (map[y + dy]?.[x + dx] === TileType.FLOOR) floorCount++;
+        }
+      }
+
+      if (floorCount >= 6) {
+        map[y][x] = TileType.WALL;
+        placed++;
+      }
+    }
+  }
+}
+
+/**
+ * 添加随机断墙（3-6格的墙体段）
+ */
+function addRandomWallSegments(map: TileType[][], count: number): void {
+  let placed = 0;
+  let attempts = 0;
+  const maxAttempts = count * 20;
+
+  while (placed < count && attempts < maxAttempts) {
+    attempts++;
+
+    const isHorizontal = Math.random() < 0.5;
+    const length = Math.floor(Math.random() * 4) + 3; // 3-6格
+
+    const x = Math.floor(Math.random() * (MAP_WIDTH - length - 4)) + 2;
+    const y = Math.floor(Math.random() * (MAP_HEIGHT - length - 4)) + 2;
+
+    // 检查这段墙是否可以放置
+    let canPlace = true;
+    const wallTiles: Position[] = [];
+
+    for (let i = 0; i < length; i++) {
+      const wx = isHorizontal ? x + i : x;
+      const wy = isHorizontal ? y : y + i;
+
+      if (map[wy]?.[wx] !== TileType.FLOOR) {
+        canPlace = false;
+        break;
+      }
+
+      // 检查不要离边界太近
+      if (wx < 2 || wx >= MAP_WIDTH - 2 || wy < 2 || wy >= MAP_HEIGHT - 2) {
+        canPlace = false;
+        break;
+      }
+
+      wallTiles.push({ x: wx, y: wy });
+    }
+
+    if (canPlace && wallTiles.length === length) {
+      // 放置墙体段
+      wallTiles.forEach(tile => {
+        map[tile.y][tile.x] = TileType.WALL;
+      });
+      placed++;
+    }
+  }
+}
+
+/**
+ * 使用泛洪填充检查连通性
+ */
+function isMapConnected(map: TileType[][]): { connected: boolean; floorTiles: Position[] } {
+  const visited: boolean[][] = Array.from({ length: MAP_HEIGHT }, () =>
+    Array(MAP_WIDTH).fill(false)
+  );
+
+  // 找到第一个地板格子作为起点
+  let startPos: Position | null = null;
+  const allFloors: Position[] = [];
+
+  for (let y = 0; y < MAP_HEIGHT; y++) {
+    for (let x = 0; x < MAP_WIDTH; x++) {
+      if (map[y][x] === TileType.FLOOR) {
+        allFloors.push({ x, y });
+        if (!startPos) startPos = { x, y };
+      }
+    }
+  }
+
+  if (!startPos) return { connected: true, floorTiles: [] };
+
+  // BFS泛洪填充
+  const queue: Position[] = [startPos];
+  let reachableCount = 0;
+
+  while (queue.length > 0) {
+    const pos = queue.shift()!;
+
+    if (visited[pos.y][pos.x]) continue;
+    visited[pos.y][pos.x] = true;
+    reachableCount++;
+
+    // 检查四个方向
+    const directions = [[0, -1], [0, 1], [-1, 0], [1, 0]];
+    for (const [dx, dy] of directions) {
+      const nx = pos.x + dx;
+      const ny = pos.y + dy;
+
+      if (nx >= 0 && nx < MAP_WIDTH && ny >= 0 && ny < MAP_HEIGHT &&
+        !visited[ny][nx] && map[ny][nx] === TileType.FLOOR) {
+        queue.push({ x: nx, y: ny });
+      }
+    }
+  }
+
   return {
-    x: Math.floor(room.x + room.w / 2),
-    y: Math.floor(room.y + room.h / 2),
+    connected: reachableCount === allFloors.length,
+    floorTiles: allFloors
   };
 }
 
 /**
- * 在地图上挖出房间
+ * 生成开放式地图（四通八达，带障碍物）
  */
-function carveRoom(map: TileType[][], room: Room): void {
-  for (let y = room.y; y < room.y + room.h; y++) {
-    for (let x = room.x; x < room.x + room.w; x++) {
-      if (y >= 0 && y < MAP_HEIGHT && x >= 0 && x < MAP_WIDTH) {
-        map[y][x] = TileType.FLOOR;
-      }
-    }
-  }
-}
+export function generateOpenMap(): { map: TileType[][]; rooms: Room[] } {
+  let map: TileType[][];
+  let attempts = 0;
+  const maxAttempts = 10;
 
-/**
- * 挖水平走廊
- */
-function carveHorizontalTunnel(map: TileType[][], x1: number, x2: number, y: number): void {
-  const startX = Math.min(x1, x2);
-  const endX = Math.max(x1, x2);
-  
-  for (let x = startX; x <= endX; x++) {
-    if (y >= 0 && y < MAP_HEIGHT && x >= 0 && x < MAP_WIDTH) {
-      map[y][x] = TileType.FLOOR;
-    }
-  }
-}
+  do {
+    attempts++;
+    map = createFloorMap();
+    addBorderWalls(map);
 
-/**
- * 挖垂直走廊
- */
-function carveVerticalTunnel(map: TileType[][], y1: number, y2: number, x: number): void {
-  const startY = Math.min(y1, y2);
-  const endY = Math.max(y1, y2);
-  
-  for (let y = startY; y <= endY; y++) {
-    if (y >= 0 && y < MAP_HEIGHT && x >= 0 && x < MAP_WIDTH) {
-      map[y][x] = TileType.FLOOR;
-    }
-  }
-}
+    // 添加障碍物（根据尝试次数适当减少）
+    const pillarCount = Math.max(20, 40 - attempts * 2);
+    const segmentCount = Math.max(8, 15 - attempts);
 
-/**
- * 生成随机地图
- */
-export function generateMap(): { map: TileType[][]; rooms: Room[] } {
-  const map = createEmptyMap();
-  const rooms: Room[] = [];
-  
-  for (let i = 0; i < MAX_ROOMS; i++) {
-    // 随机房间大小
-    const w = Math.floor(Math.random() * (MAX_ROOM_SIZE - MIN_ROOM_SIZE + 1)) + MIN_ROOM_SIZE;
-    const h = Math.floor(Math.random() * (MAX_ROOM_SIZE - MIN_ROOM_SIZE + 1)) + MIN_ROOM_SIZE;
-    
-    // 随机房间位置
-    const x = Math.floor(Math.random() * (MAP_WIDTH - w - 2)) + 1;
-    const y = Math.floor(Math.random() * (MAP_HEIGHT - h - 2)) + 1;
-    
-    const newRoom: Room = { x, y, w, h };
-    
-    // 检查是否与现有房间重叠
-    const overlaps = rooms.some(room => roomsIntersect(newRoom, room));
-    
-    if (!overlaps) {
-      carveRoom(map, newRoom);
-      
-      // 如果不是第一个房间，连接到前一个房间
-      if (rooms.length > 0) {
-        const prevRoom = rooms[rooms.length - 1];
-        const prevCenter = getRoomCenter(prevRoom);
-        const newCenter = getRoomCenter(newRoom);
-        
-        // 随机选择先水平还是先垂直
-        if (Math.random() < 0.5) {
-          carveHorizontalTunnel(map, prevCenter.x, newCenter.x, prevCenter.y);
-          carveVerticalTunnel(map, prevCenter.y, newCenter.y, newCenter.x);
-        } else {
-          carveVerticalTunnel(map, prevCenter.y, newCenter.y, prevCenter.x);
-          carveHorizontalTunnel(map, prevCenter.x, newCenter.x, newCenter.y);
-        }
-      }
-      
-      rooms.push(newRoom);
-    }
-  }
-  
+    addRandomWallSegments(map, segmentCount);
+    addRandomPillars(map, pillarCount);
+
+  } while (!isMapConnected(map).connected && attempts < maxAttempts);
+
+  // 创建虚拟房间用于兼容现有系统
+  // 第一个房间在左上角，最后一个在右下角
+  const rooms: Room[] = [
+    { x: 3, y: 3, w: 6, h: 6 },  // 起始区域
+    { x: MAP_WIDTH - 10, y: MAP_HEIGHT - 10, w: 6, h: 6 },  // 结束区域
+  ];
+
+  // 添加一些中间区域作为敌人生成点
+  const midRooms = [
+    { x: Math.floor(MAP_WIDTH / 2) - 3, y: Math.floor(MAP_HEIGHT / 2) - 3, w: 6, h: 6 },
+    { x: MAP_WIDTH - 15, y: 5, w: 6, h: 6 },
+    { x: 5, y: MAP_HEIGHT - 12, w: 6, h: 6 },
+    { x: Math.floor(MAP_WIDTH / 3), y: Math.floor(MAP_HEIGHT / 3), w: 5, h: 5 },
+    { x: Math.floor(MAP_WIDTH * 2 / 3), y: Math.floor(MAP_HEIGHT * 2 / 3), w: 5, h: 5 },
+  ];
+
+  // 将中间区域插入到第一个和最后一个之间
+  rooms.splice(1, 0, ...midRooms);
+
   return { map, rooms };
 }
+
+/**
+ * 生成随机地图（现在使用开放式地图）
+ */
+export function generateMap(): { map: TileType[][]; rooms: Room[] } {
+  return generateOpenMap();
+}
+
 
 /**
  * 检查位置是否可行走
@@ -167,16 +263,16 @@ export function getRandomPositionInRoom(
   items: Item[]
 ): Position | null {
   const attempts = 20;
-  
+
   for (let i = 0; i < attempts; i++) {
     const x = Math.floor(Math.random() * (room.w - 2)) + room.x + 1;
     const y = Math.floor(Math.random() * (room.h - 2)) + room.y + 1;
-    
+
     if (isWalkable(map, x, y) && isPositionEmpty(x, y, player, enemies, items)) {
       return { x, y };
     }
   }
-  
+
   return null;
 }
 
@@ -195,22 +291,22 @@ export function getAdjacentEmptyPosition(
     [0, -1], [0, 1], [-1, 0], [1, 0],
     [-1, -1], [-1, 1], [1, -1], [1, 1]
   ];
-  
+
   // 随机打乱方向
   for (let i = directions.length - 1; i > 0; i--) {
     const j = Math.floor(Math.random() * (i + 1));
     [directions[i], directions[j]] = [directions[j], directions[i]];
   }
-  
+
   for (const [dx, dy] of directions) {
     const newX = x + dx;
     const newY = y + dy;
-    
+
     if (isWalkable(map, newX, newY) && isPositionEmpty(newX, newY, player, enemies, items)) {
       return { x: newX, y: newY };
     }
   }
-  
+
   return null;
 }
 
@@ -244,13 +340,13 @@ export function computeFov(
       fovMap[y][x] = { ...fovMap[y][x], visible: false };
     }
   }
-  
+
   // 360度射线投射
   for (let angle = 0; angle < 360; angle += 2) {
     const rad = (angle * Math.PI) / 180;
     const dx = Math.cos(rad);
     const dy = Math.sin(rad);
-    
+
     castRay(map, fovMap, playerX, playerY, dx, dy, radius);
   }
 }
@@ -270,15 +366,15 @@ function castRay(
   for (let d = 0; d <= maxDistance; d++) {
     const x = Math.round(startX + dx * d);
     const y = Math.round(startY + dy * d);
-    
+
     // 越界检查
     if (x < 0 || x >= MAP_WIDTH || y < 0 || y >= MAP_HEIGHT) {
       return;
     }
-    
+
     // 标记为可见和已探索
     fovMap[y][x] = { visible: true, explored: true };
-    
+
     // 如果遇到墙壁，停止射线
     if (map[y][x] === TileType.WALL) {
       return;
@@ -289,14 +385,16 @@ function castRay(
 /**
  * 生成物品类型
  */
-export function generateItemType(): 'gold' | 'potion' | 'oil' {
+export function generateItemType(): 'gold' | 'potion' | 'oil' | 'arrow' {
   const roll = Math.random();
-  
+
   if (roll < ITEM_SPAWN_RATES.GOLD) {
     return 'gold';
   } else if (roll < ITEM_SPAWN_RATES.GOLD + ITEM_SPAWN_RATES.OIL) {
     return 'oil';
-  } else {
+  } else if (roll < ITEM_SPAWN_RATES.GOLD + ITEM_SPAWN_RATES.OIL + ITEM_SPAWN_RATES.POTION) {
     return 'potion';
+  } else {
+    return 'arrow';
   }
 }

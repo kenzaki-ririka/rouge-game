@@ -51,6 +51,8 @@ export interface Player extends Entity {
   skillSlots: number;
   skillIds: string[];
   isDashing: boolean;
+  arrows: number;
+  maxArrows: number;
 }
 
 export interface Enemy extends Entity {
@@ -63,7 +65,7 @@ export type EnemySpecial = 'none' | 'split' | 'heal' | 'erratic';
 
 // ==================== 物品类型 ====================
 
-export type ItemType = 'portal' | 'gold' | 'potion' | 'oil';
+export type ItemType = 'portal' | 'gold' | 'potion' | 'oil' | 'arrow';
 
 export interface Item extends Position {
   type: ItemType;
@@ -112,6 +114,7 @@ export interface SkillContext {
   addLog: (message: string, type: LogType) => void;
   updateGame: () => void;
   isWalkable: (x: number, y: number) => boolean;
+  addGroundEffect: (effect: GroundEffect) => void;
 }
 
 export type SkillEffectFunction = (
@@ -188,18 +191,28 @@ export interface VisualEffect {
 export interface GroundEffect {
   tiles: Position[];
   duration: number;
+  damage: number;
   effect: (entity: Entity) => void;
   color: string;
+  name: string;
+}
+
+export interface ArrowProjectile {
+  startX: number;
+  startY: number;
+  endX: number;
+  endY: number;
+  timestamp: number;
 }
 
 // ==================== 游戏状态 ====================
 
-export type GameScreen = 
-  | 'start' 
-  | 'charCreation' 
-  | 'skillSelection' 
-  | 'playing' 
-  | 'levelUp' 
+export type GameScreen =
+  | 'start'
+  | 'charCreation'
+  | 'skillSelection'
+  | 'playing'
+  | 'levelUp'
   | 'shop'
   | 'gameOver';
 
@@ -217,6 +230,7 @@ export interface GameState {
   logs: LogEntry[];
   visualEffects: VisualEffect[];
   groundEffects: GroundEffect[];
+  arrowProjectile: ArrowProjectile | null;
 }
 
 // ==================== 升级选项 ====================
@@ -257,7 +271,7 @@ export interface PlayerBaseStats {
 
 // ==================== 事件类型 ====================
 
-export type GameEventType = 
+export type GameEventType =
   | 'playerMove'
   | 'playerAttack'
   | 'playerSkill'

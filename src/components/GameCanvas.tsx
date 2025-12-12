@@ -18,9 +18,10 @@ import {
 interface GameCanvasProps {
   state: GameState;
   onEnemyHover?: (enemy: Enemy | null, x: number, y: number) => void;
+  onRightClick?: (tileX: number, tileY: number) => void;
 }
 
-export const GameCanvas: React.FC<GameCanvasProps> = ({ state, onEnemyHover }) => {
+export const GameCanvas: React.FC<GameCanvasProps> = ({ state, onEnemyHover, onRightClick }) => {
   const canvasRef = useRef<HTMLCanvasElement>(null);
   const containerRef = useRef<HTMLDivElement>(null);
 
@@ -32,7 +33,7 @@ export const GameCanvas: React.FC<GameCanvasProps> = ({ state, onEnemyHover }) =
     const ctx = canvas.getContext('2d');
     if (!ctx) return;
 
-    const { gameMap, fovMap, player, enemies, items, visualEffects, groundEffects } = state;
+    const { gameMap, fovMap, player, enemies, items, visualEffects, groundEffects, arrowProjectile } = state;
 
     // 如果地图还未生成，不进行绘制
     if (!gameMap || gameMap.length === 0) {
@@ -90,6 +91,7 @@ export const GameCanvas: React.FC<GameCanvasProps> = ({ state, onEnemyHover }) =
             case 'gold': char = ENTITY_CHARS.GOLD; break;
             case 'potion': char = ENTITY_CHARS.POTION; break;
             case 'oil': char = ENTITY_CHARS.OIL; break;
+            case 'arrow': char = ENTITY_CHARS.ARROW; ctx.fillStyle = COLORS.ARROW; break;
           }
           ctx.fillText(char, x * TILE_SIZE + TILE_SIZE / 2, y * TILE_SIZE + TILE_SIZE / 2);
         }
@@ -130,6 +132,44 @@ export const GameCanvas: React.FC<GameCanvasProps> = ({ state, onEnemyHover }) =
         }
       });
     });
+
+    // 绘制箭矢轨迹
+    if (arrowProjectile) {
+      ctx.strokeStyle = COLORS.ARROW_LINE;
+      ctx.lineWidth = 3;
+      ctx.beginPath();
+      ctx.moveTo(
+        arrowProjectile.startX * TILE_SIZE + TILE_SIZE / 2,
+        arrowProjectile.startY * TILE_SIZE + TILE_SIZE / 2
+      );
+      ctx.lineTo(
+        arrowProjectile.endX * TILE_SIZE + TILE_SIZE / 2,
+        arrowProjectile.endY * TILE_SIZE + TILE_SIZE / 2
+      );
+      ctx.stroke();
+
+      // 绘制箭头
+      const angle = Math.atan2(
+        arrowProjectile.endY - arrowProjectile.startY,
+        arrowProjectile.endX - arrowProjectile.startX
+      );
+      const arrowHeadLength = 10;
+      const endX = arrowProjectile.endX * TILE_SIZE + TILE_SIZE / 2;
+      const endY = arrowProjectile.endY * TILE_SIZE + TILE_SIZE / 2;
+
+      ctx.beginPath();
+      ctx.moveTo(endX, endY);
+      ctx.lineTo(
+        endX - arrowHeadLength * Math.cos(angle - Math.PI / 6),
+        endY - arrowHeadLength * Math.sin(angle - Math.PI / 6)
+      );
+      ctx.moveTo(endX, endY);
+      ctx.lineTo(
+        endX - arrowHeadLength * Math.cos(angle + Math.PI / 6),
+        endY - arrowHeadLength * Math.sin(angle + Math.PI / 6)
+      );
+      ctx.stroke();
+    }
   }, [state]);
 
   // 初始化画布尺寸
@@ -224,6 +264,27 @@ export const GameCanvas: React.FC<GameCanvasProps> = ({ state, onEnemyHover }) =
     }
   }, [onEnemyHover]);
 
+  // 右键点击处理（射箭）
+  const handleContextMenu = useCallback((e: React.MouseEvent<HTMLCanvasElement>) => {
+    e.preventDefault(); // 阻止默认右键菜单
+
+    if (!onRightClick) return;
+
+    const canvas = canvasRef.current;
+    if (!canvas) return;
+
+    const rect = canvas.getBoundingClientRect();
+    const scale = rect.width / canvas.width;
+    const mouseX = (e.clientX - rect.left) / scale;
+    const mouseY = (e.clientY - rect.top) / scale;
+    const tileX = Math.floor(mouseX / TILE_SIZE);
+    const tileY = Math.floor(mouseY / TILE_SIZE);
+
+    if (tileX >= 0 && tileX < MAP_WIDTH && tileY >= 0 && tileY < MAP_HEIGHT) {
+      onRightClick(tileX, tileY);
+    }
+  }, [onRightClick]);
+
   return (
     <div
       ref={containerRef}
@@ -234,6 +295,7 @@ export const GameCanvas: React.FC<GameCanvasProps> = ({ state, onEnemyHover }) =
         className="game-canvas"
         onMouseMove={handleMouseMove}
         onMouseLeave={handleMouseLeave}
+        onContextMenu={handleContextMenu}
       />
     </div>
   );

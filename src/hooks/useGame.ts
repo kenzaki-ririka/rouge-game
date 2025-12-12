@@ -16,6 +16,8 @@ import {
   FOG_OF_WAR_ENABLED,
   REGEN_TICK_INTERVAL,
   isShopFloor,
+  ARROW_DAMAGE,
+  ARROW_RANGE,
 } from '../constants';
 import {
   generateMap,
@@ -60,6 +62,7 @@ const createInitialState = (): GameState => ({
   logs: [],
   visualEffects: [],
   groundEffects: [],
+  arrowProjectile: null,
 });
 
 // ==================== 日志ID计数器 ====================
@@ -149,6 +152,7 @@ export function useGame() {
       logs: [],
       visualEffects: [],
       groundEffects: [],
+      arrowProjectile: null,
     });
 
     // 初始日志
@@ -197,6 +201,7 @@ export function useGame() {
       items,
       visualEffects: [],
       groundEffects: [],
+      arrowProjectile: null,
     }));
 
     addLog(`你穿过了传送门...来到了地城第 ${newFloor} 层。`, 'system');
@@ -502,6 +507,12 @@ export function useGame() {
         setState(prev => ({ ...prev })); // 触发重渲染
       },
       isWalkable: (x: number, y: number) => isWalkable(currentState.gameMap, x, y),
+      addGroundEffect: (effect: typeof currentState.groundEffects[0]) => {
+        setState(prev => ({
+          ...prev,
+          groundEffects: [...prev.groundEffects, effect],
+        }));
+      },
     };
 
     const result = skill.effect(player, null, skillContext);
@@ -531,6 +542,89 @@ export function useGame() {
       addLog(`你施放了【${skill.name}】！`, 'skill');
       commitPlayerAction();
     }
+  }, [addLog, killEntity]);
+
+  // ==================== 射箭系统 ====================
+
+  const shootArrow = useCallback((targetX: number, targetY: number) => {
+    const currentState = stateRef.current;
+    if (!currentState.isPlayerTurn || !currentState.gameActive || !currentState.player) return;
+    if (currentState.screen !== 'playing') return;
+
+    const player = currentState.player;
+
+    // 检查是否有箭矢
+    if (player.arrows <= 0) {
+      addLog('你没有箭矢了！', 'system');
+      return;
+    }
+
+    // 检查目标位置是否有敌人
+    const targetEnemy = currentState.enemies.find(e => e.x === targetX && e.y === targetY);
+    if (!targetEnemy) {
+      addLog('那里没有目标！', 'system');
+      return;
+    }
+
+    // 检查距离
+    const distance = Math.hypot(targetX - player.x, targetY - player.y);
+    if (distance > ARROW_RANGE) {
+      addLog('目标太远了！', 'system');
+      return;
+    }
+
+    // 检查视野
+    const fov = currentState.fovMap[targetY]?.[targetX];
+    if (FOG_OF_WAR_ENABLED && !fov?.visible) {
+      addLog('你看不到那里！', 'system');
+      return;
+    }
+
+    // 创建箭矢轨迹用于渲染
+    const arrowProjectile = {
+      startX: player.x,
+      startY: player.y,
+      endX: targetX,
+      endY: targetY,
+      timestamp: Date.now(),
+    };
+
+    // 应用伤害
+    const damage = ARROW_DAMAGE;
+    targetEnemy.hp -= damage;
+
+    addLog(`箭矢命中了 ${targetEnemy.name}，造成 ${damage} 点伤害！`, 'player');
+
+    // 更新状态
+    setState(prev => {
+      if (!prev.player) return prev;
+
+      const updatedPlayer = {
+        ...prev.player,
+        arrows: prev.player.arrows - 1,
+      };
+
+      return {
+        ...prev,
+        player: updatedPlayer,
+        arrowProjectile,
+      };
+    });
+
+    // 检查敌人是否死亡
+    if (targetEnemy.hp <= 0) {
+      killEntity(targetEnemy);
+    }
+
+    // 延迟清除箭矢轨迹
+    setTimeout(() => {
+      setState(prev => ({
+        ...prev,
+        arrowProjectile: null,
+      }));
+    }, 300);
+
+    commitPlayerAction();
   }, [addLog, killEntity]);
 
   // ==================== 提交玩家行动 ====================
@@ -637,6 +731,29 @@ export function useGame() {
           return;
         }
 
+        // 处理地面效果
+        const groundEffectsToKeep = currentState.groundEffects.filter(effect => {
+          // 对站在效果区域的敌人造成伤害
+          enemies.forEach(enemy => {
+            const isOnEffect = effect.tiles.some(tile => tile.x === enemy.x && tile.y === enemy.y);
+            if (isOnEffect && effect.damage) {
+              enemy.hp -= effect.damage;
+              addLog(`${enemy.name} 受到 ${effect.name} 伤害 ${effect.damage} 点！`, 'skill');
+
+              if (enemy.hp <= 0) {
+                addLog(`${enemy.name} 被 ${effect.name} 击败了！`, 'system');
+              }
+            }
+          });
+
+          // 减少持续时间
+          effect.duration--;
+          return effect.duration > 0;
+        });
+
+        // 移除死亡敌人
+        enemies = enemies.filter(e => e.hp > 0);
+
         // 更新状态并等待玩家输入
         setState(prev => ({
           ...prev,
@@ -644,6 +761,7 @@ export function useGame() {
           enemies,
           turnCount,
           isPlayerTurn: true,
+          groundEffects: groundEffectsToKeep,
         }));
 
         shouldContinue = false;
@@ -840,6 +958,7 @@ export function useGame() {
     addLog,
     movePlayer,
     useSkill,
+    shootArrow,
     selectLevelUpOption,
     selectSkills,
     openShop,

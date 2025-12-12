@@ -1,23 +1,23 @@
 // src/core/EntityManager.ts - 实体创建和管理
 
-import { 
-  Player, 
-  Enemy, 
-  Item, 
-  TileType, 
+import {
+  Player,
+  Enemy,
+  Item,
+  TileType,
   Room,
   PlayerBaseStats,
   DifficultyMultipliers,
 } from '../types';
-import { 
-  DEFAULT_PLAYER_STATS, 
+import {
+  DEFAULT_PLAYER_STATS,
   ITEM_EFFECTS,
 } from '../constants';
 import { MONSTER_DEFINITIONS, getRandomMonster } from '../data/monsters';
 import { DEFAULT_DIFFICULTY } from '../data/difficulty';
-import { 
-  getRandomPositionInRoom, 
-  isWalkable, 
+import {
+  getRandomPositionInRoom,
+  isWalkable,
   isPositionEmpty,
   generateItemType,
 } from './MapGenerator';
@@ -35,7 +35,7 @@ export function createPlayer(
   y: number = 0
 ): Player {
   const baseStats = { ...DEFAULT_PLAYER_STATS, ...stats };
-  
+
   return {
     name: name || '英雄',
     x,
@@ -67,6 +67,8 @@ export function createPlayer(
     effects: [],
     stunned: 0,
     isDashing: false,
+    arrows: baseStats.arrows,
+    maxArrows: baseStats.maxArrows,
   };
 }
 
@@ -82,14 +84,14 @@ export function createEnemy(
   typeId?: string,
   difficulty: DifficultyMultipliers = DEFAULT_DIFFICULTY
 ): Enemy | null {
-  const definition = typeId 
-    ? MONSTER_DEFINITIONS[typeId] 
+  const definition = typeId
+    ? MONSTER_DEFINITIONS[typeId]
     : getRandomMonster(floor);
-  
+
   if (!definition) return null;
-  
+
   const stats = definition.stats;
-  
+
   // 计算属性值
   const hp = Math.floor(
     (stats.hp[0] + floor * stats.hp[1]) * difficulty.hp_multiplier
@@ -104,7 +106,7 @@ export function createEnemy(
     (stats.exp[0] + floor * stats.exp[1]) * difficulty.exp_multiplier
   );
   const speed = Math.floor(stats.speed * difficulty.speed_multiplier);
-  
+
   return {
     name: definition.name,
     char: definition.char,
@@ -151,25 +153,25 @@ export function placeEntities(
 } {
   const enemies: Enemy[] = [];
   const items: Item[] = [];
-  
+
   if (rooms.length === 0) {
     return { playerStart: { x: 1, y: 1 }, enemies, items };
   }
-  
+
   // 玩家起始位置：第一个房间中心
   const firstRoom = rooms[0];
   const playerStart = {
     x: Math.floor(firstRoom.x + firstRoom.w / 2),
     y: Math.floor(firstRoom.y + firstRoom.h / 2),
   };
-  
+
   // 创建临时玩家对象用于位置检测
   const tempPlayer: Player = {
     ...createPlayer('temp', {}, []),
     x: playerStart.x,
     y: playerStart.y,
   };
-  
+
   // 传送门：最后一个房间中心
   const lastRoom = rooms[rooms.length - 1];
   const portalPos = {
@@ -177,14 +179,14 @@ export function placeEntities(
     y: Math.floor(lastRoom.y + lastRoom.h / 2),
   };
   items.push(createItem(portalPos.x, portalPos.y, 'portal'));
-  
+
   // 在中间房间放置敌人和物品
   for (let i = 1; i < rooms.length - 1; i++) {
     const room = rooms[i];
-    
-    // 敌人数量随楼层增加
-    const numEnemies = Math.floor(Math.random() * (Math.floor(floor / 2) + 2));
-    
+
+    // 敌人数量大幅增加（更高密度）
+    const numEnemies = Math.floor(Math.random() * (floor + 4)) + 3;
+
     for (let j = 0; j < numEnemies; j++) {
       const pos = getRandomPositionInRoom(room, map, tempPlayer, enemies, items);
       if (pos) {
@@ -194,10 +196,10 @@ export function placeEntities(
         }
       }
     }
-    
+
     // 物品数量受幸运影响
     const numItems = Math.floor(Math.random() * (2 + playerLuck / 10));
-    
+
     for (let j = 0; j < numItems; j++) {
       const pos = getRandomPositionInRoom(room, map, tempPlayer, enemies, items);
       if (pos) {
@@ -206,7 +208,7 @@ export function placeEntities(
       }
     }
   }
-  
+
   return { playerStart, enemies, items };
 }
 
@@ -226,24 +228,34 @@ export function handleItemPickup(
       player.gold += goldAmount;
       return { consumed: true, message: `你捡到了 ${goldAmount} 枚金币。` };
     }
-    
+
     case 'potion': {
       const healAmount = Math.floor(player.maxHp * ITEM_EFFECTS.POTION_HEAL_PERCENT);
       const actualHeal = Math.min(healAmount, player.maxHp - player.hp);
       player.hp = Math.min(player.maxHp, player.hp + healAmount);
       return { consumed: true, message: `你喝下治疗药水，恢复了 ${actualHeal} 点生命。` };
     }
-    
+
     case 'oil': {
       const torchAmount = Math.floor(player.maxTorch * ITEM_EFFECTS.OIL_RESTORE_PERCENT);
       const actualRestore = Math.min(torchAmount, player.maxTorch - player.torch);
       player.torch = Math.min(player.maxTorch, player.torch + torchAmount);
       return { consumed: true, message: `你补充了灯油，火把恢复了 ${actualRestore} 点。` };
     }
-    
+
+    case 'arrow': {
+      const arrowAmount = ITEM_EFFECTS.ARROW_PICKUP_COUNT;
+      const actualPickup = Math.min(arrowAmount, player.maxArrows - player.arrows);
+      if (actualPickup > 0) {
+        player.arrows = Math.min(player.maxArrows, player.arrows + arrowAmount);
+        return { consumed: true, message: `你捡到了 ${actualPickup} 支箭矢。` };
+      }
+      return { consumed: false, message: '箭矢已满，无法拾取。' };
+    }
+
     case 'portal':
       return { consumed: false, message: '传送门...' };
-    
+
     default:
       return { consumed: false, message: '' };
   }
@@ -265,7 +277,7 @@ export function performLevelUp(player: Player): void {
   player.level++;
   player.exp -= player.nextLevelExp;
   player.nextLevelExp = Math.floor(player.nextLevelExp * 1.6);
-  
+
   // 恢复15%生命
   const healAmount = Math.floor(player.maxHp * 0.15);
   player.hp = Math.min(player.maxHp, player.hp + healAmount);
@@ -296,7 +308,7 @@ export function getLevelUpOptions(): Array<{
     { id: 'thorns', text: '反伤 +2', apply: (p: Player) => { p.thorns += 2; } },
     { id: 'maxTorch', text: '最大火把 +20', apply: (p: Player) => { p.maxTorch += 20; } },
   ];
-  
+
   // 随机选择5个选项
   const shuffled = [...allOptions].sort(() => Math.random() - 0.5);
   return shuffled.slice(0, 5);
@@ -318,9 +330,9 @@ export function handleMonsterSplit(
 ): Enemy[] {
   if (enemy.special !== 'split') return [];
   if (Math.random() >= 0.5) return []; // 50%概率分裂
-  
+
   const newEnemies: Enemy[] = [];
-  
+
   // 尝试在周围生成2个小黏液怪
   for (let i = 0; i < 2; i++) {
     // 获取相邻空位
@@ -328,19 +340,19 @@ export function handleMonsterSplit(
       [0, -1], [0, 1], [-1, 0], [1, 0],
       [-1, -1], [-1, 1], [1, -1], [1, 1]
     ];
-    
+
     // 随机打乱方向
     for (let j = directions.length - 1; j > 0; j--) {
       const k = Math.floor(Math.random() * (j + 1));
       [directions[j], directions[k]] = [directions[k], directions[j]];
     }
-    
+
     for (const [dx, dy] of directions) {
       const newX = enemy.x + dx;
       const newY = enemy.y + dy;
-      
+
       if (
-        isWalkable(map, newX, newY) && 
+        isWalkable(map, newX, newY) &&
         isPositionEmpty(newX, newY, player, [...enemies, ...newEnemies], items)
       ) {
         const miniSlime = createEnemy(newX, newY, floor, 'mini_slime', difficulty);
@@ -351,6 +363,6 @@ export function handleMonsterSplit(
       }
     }
   }
-  
+
   return newEnemies;
 }

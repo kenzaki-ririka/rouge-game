@@ -19,12 +19,12 @@ interface ProgressBarProps {
 
 const ProgressBar: React.FC<ProgressBarProps> = ({ current, max, label, colorClass }) => {
   const percentage = max > 0 ? (current / max) * 100 : 0;
-  
+
   return (
     <div className="stat-bar">
       <label className="stat-label">{label}</label>
       <div className="progress-bar-bg">
-        <div 
+        <div
           className={`progress-bar ${colorClass}`}
           style={{ width: `${percentage}%` }}
         />
@@ -38,39 +38,39 @@ export const StatsPanel: React.FC<StatsPanelProps> = ({ player }) => {
   const effectiveAttack = getEffectiveAttack(player);
   const effectiveDefense = getEffectiveDefense(player);
   const effectiveSpeed = getEffectiveSpeed(player);
-  
+
   return (
     <div className="stats-panel panel">
       <h2 className="panel-title">英雄状态</h2>
-      
+
       {/* 进度条 */}
       <div className="stat-bars">
-        <ProgressBar 
-          current={player.hp} 
-          max={player.maxHp} 
-          label="生命值 (HP)" 
-          colorClass="hp-bar" 
+        <ProgressBar
+          current={player.hp}
+          max={player.maxHp}
+          label="生命值 (HP)"
+          colorClass="hp-bar"
         />
-        <ProgressBar 
-          current={player.mp} 
-          max={player.maxMp} 
-          label="魔法值 (MP)" 
-          colorClass="mp-bar" 
+        <ProgressBar
+          current={player.mp}
+          max={player.maxMp}
+          label="魔法值 (MP)"
+          colorClass="mp-bar"
         />
-        <ProgressBar 
-          current={player.torch} 
-          max={player.maxTorch} 
-          label="火把值" 
-          colorClass="torch-bar" 
+        <ProgressBar
+          current={player.torch}
+          max={player.maxTorch}
+          label="火把值"
+          colorClass="torch-bar"
         />
-        <ProgressBar 
-          current={player.exp} 
-          max={player.nextLevelExp} 
-          label="经验值 (EXP)" 
-          colorClass="exp-bar" 
+        <ProgressBar
+          current={player.exp}
+          max={player.nextLevelExp}
+          label="经验值 (EXP)"
+          colorClass="exp-bar"
         />
       </div>
-      
+
       {/* 属性列表 */}
       <div className="stat-list">
         <div className="stat-row">
@@ -111,8 +111,12 @@ export const StatsPanel: React.FC<StatsPanelProps> = ({ player }) => {
           <span>💰 金币:</span>
           <span className="gold-value">{player.gold}</span>
         </div>
+        <div className="stat-row">
+          <span>🏹 箭矢:</span>
+          <span className="stat-highlight">{player.arrows} / {player.maxArrows}</span>
+        </div>
       </div>
-      
+
       {/* 技能列表 */}
       <div className="skills-section">
         <h3 className="skills-title">技能 ({player.skillIds.length}/{player.skillSlots})</h3>
@@ -120,7 +124,7 @@ export const StatsPanel: React.FC<StatsPanelProps> = ({ player }) => {
           {player.skillIds.map((skillId, index) => {
             const skill = SKILL_LIBRARY[skillId];
             if (!skill || index >= player.skillSlots) return null;
-            
+
             return (
               <div key={skillId} className="skill-item">
                 <kbd className="skill-key">{index + 1}</kbd>
@@ -131,7 +135,7 @@ export const StatsPanel: React.FC<StatsPanelProps> = ({ player }) => {
           })}
         </div>
       </div>
-      
+
       {/* 效果列表 */}
       {player.effects.length > 0 && (
         <div className="effects-section">

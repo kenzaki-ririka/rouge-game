@@ -27,35 +27,36 @@ function App() {
     selectSkills,
     purchaseItem,
     closeShop,
+    shootArrow,
     levelUpOptions,
     shopItems,
     pendingSkillSelection,
   } = useGame();
-  
+
   // 临时保存角色创建数据
   const [charData, setCharData] = useState<{
     name: string;
     stats: Partial<PlayerBaseStats>;
   } | null>(null);
-  
+
   // 敌人信息提示
   const [hoveredEnemy, setHoveredEnemy] = useState<{
     enemy: Enemy;
     x: number;
     y: number;
   } | null>(null);
-  
+
   // 开始按钮 -> 进入角色创建
   const handleStartClick = useCallback(() => {
     setScreen('charCreation');
   }, [setScreen]);
-  
+
   // 角色创建完成 -> 进入技能选择
   const handleCharConfirm = useCallback((name: string, stats: Partial<PlayerBaseStats>) => {
     setCharData({ name, stats });
     setScreen('skillSelection');
   }, [setScreen]);
-  
+
   // 技能选择完成 -> 开始游戏
   const handleSkillConfirm = useCallback((skillIds: string[]) => {
     if (pendingSkillSelection) {
@@ -67,12 +68,12 @@ function App() {
       setCharData(null);
     }
   }, [charData, startGame, pendingSkillSelection, selectSkills]);
-  
+
   // 重新开始游戏
   const handleRestart = useCallback(() => {
     setScreen('start');
   }, [setScreen]);
-  
+
   // 敌人悬停处理
   const handleEnemyHover = useCallback((enemy: Enemy | null, x: number, y: number) => {
     if (enemy) {
@@ -81,16 +82,16 @@ function App() {
       setHoveredEnemy(null);
     }
   }, []);
-  
+
   // 根据当前屏幕渲染内容
   const renderScreen = () => {
     switch (state.screen) {
       case 'start':
         return <StartScreen onStart={handleStartClick} />;
-      
+
       case 'charCreation':
         return <CharCreation onConfirm={handleCharConfirm} />;
-      
+
       case 'skillSelection':
         return (
           <SkillSelection
@@ -99,7 +100,7 @@ function App() {
             onConfirm={handleSkillConfirm}
           />
         );
-      
+
       case 'levelUp':
         return state.player && (
           <LevelUpScreen
@@ -108,7 +109,7 @@ function App() {
             onSelect={selectLevelUpOption}
           />
         );
-      
+
       case 'shop':
         return state.player && (
           <ShopScreen
@@ -118,7 +119,7 @@ function App() {
             onClose={closeShop}
           />
         );
-      
+
       case 'gameOver':
         return (
           <GameOverScreen
@@ -127,18 +128,18 @@ function App() {
             onRestart={handleRestart}
           />
         );
-      
+
       default:
         return null;
     }
   };
-  
+
   // 游戏主界面（playing状态时显示）
   const renderGameUI = () => {
     if (!state.player || state.screen === 'start' || state.screen === 'charCreation') {
       return null;
     }
-    
+
     return (
       <div className="game-layout">
         {/* 顶部栏 */}
@@ -149,19 +150,23 @@ function App() {
             <span className="turn-info">回合: {state.turnCount}</span>
           </div>
         </header>
-        
+
         {/* 主要内容区 */}
         <main className="game-main">
           {/* 左侧状态面板 */}
           <aside className="left-panel">
             <StatsPanel player={state.player} floor={state.floor} />
           </aside>
-          
+
           {/* 中间游戏画布 */}
           <section className="center-panel">
-            <GameCanvas state={state} onEnemyHover={handleEnemyHover} />
+            <GameCanvas
+              state={state}
+              onEnemyHover={handleEnemyHover}
+              onRightClick={shootArrow}
+            />
           </section>
-          
+
           {/* 右侧（预留给Live2D） */}
           <aside className="right-panel">
             <div className="portrait-placeholder">
@@ -172,15 +177,15 @@ function App() {
             </div>
           </aside>
         </main>
-        
+
         {/* 底部日志 */}
         <footer className="game-footer">
           <LogPanel logs={state.logs} />
         </footer>
-        
+
         {/* 敌人信息提示 */}
         {hoveredEnemy && (
-          <div 
+          <div
             className="enemy-tooltip"
             style={{
               left: hoveredEnemy.x + 10,
@@ -199,7 +204,7 @@ function App() {
       </div>
     );
   };
-  
+
   return (
     <div className="app">
       {renderGameUI()}
