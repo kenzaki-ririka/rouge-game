@@ -324,12 +324,12 @@ const skillEffects: Record<string, SkillEffectFunction> = {
 
     addLog(`藤蔓从地下伸出，缠住了 ${targetEnemy.name}！`, 'skill');
 
-    // 减速效果
-    const speedReduction = Math.floor(targetEnemy.speed * 0.5);
+    // 减速效果 - 影响移动速度
+    const speedReduction = Math.floor(targetEnemy.moveSpeed * 0.5);
     targetEnemy.effects.push({
       name: 'entangled',
       duration: 10,
-      speed: -speedReduction,
+      moveSpeed: -speedReduction,
     });
 
     updateGame();

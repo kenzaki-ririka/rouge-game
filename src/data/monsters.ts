@@ -1,4 +1,5 @@
-// src/data/monsters.ts - 怪物定义数据
+// src/data/monsters.ts - 怪物定义数据 (DEPRECATED - use ConfigManager instead)
+// This file is kept for backwards compatibility but ConfigManager should be used for new code.
 
 import { MonsterDefinition } from '../types';
 
@@ -15,11 +16,13 @@ export const MONSTER_DEFINITIONS: Record<string, MonsterDefinition> = {
       defense: [1, 0],
       evasion: 5,
       exp: [5, 1],
-      speed: 10,
+      moveSpeed: 10,
+      attackSpeed: 10,
     },
     special: 'none',
+    attackRange: 1,
   },
-  
+
   slime: {
     id: 'slime',
     name: '黏液怪',
@@ -32,16 +35,18 @@ export const MONSTER_DEFINITIONS: Record<string, MonsterDefinition> = {
       defense: [0, 0],
       evasion: 0,
       exp: [4, 1],
-      speed: 5,
+      moveSpeed: 5,
+      attackSpeed: 8,
     },
     special: 'split',
+    attackRange: 1,
   },
-  
+
   mini_slime: {
     id: 'mini_slime',
     name: '小黏液怪',
     char: 'm',
-    minFloor: 99, // 不会自然生成
+    minFloor: 99,
     maxFloor: 99,
     stats: {
       hp: [5, 0],
@@ -49,11 +54,13 @@ export const MONSTER_DEFINITIONS: Record<string, MonsterDefinition> = {
       defense: [0, 0],
       evasion: 0,
       exp: [1, 0],
-      speed: 8,
+      moveSpeed: 8,
+      attackSpeed: 8,
     },
     special: 'none',
+    attackRange: 1,
   },
-  
+
   bat: {
     id: 'bat',
     name: '洞穴蝙蝠',
@@ -66,11 +73,13 @@ export const MONSTER_DEFINITIONS: Record<string, MonsterDefinition> = {
       defense: [0, 0],
       evasion: 30,
       exp: [8, 1],
-      speed: 15,
+      moveSpeed: 15,
+      attackSpeed: 12,
     },
     special: 'erratic',
+    attackRange: 1,
   },
-  
+
   skeleton: {
     id: 'skeleton',
     name: '骷髅兵',
@@ -83,11 +92,13 @@ export const MONSTER_DEFINITIONS: Record<string, MonsterDefinition> = {
       defense: [2, 1],
       evasion: 0,
       exp: [10, 2],
-      speed: 8,
+      moveSpeed: 8,
+      attackSpeed: 9,
     },
     special: 'none',
+    attackRange: 1,
   },
-  
+
   shaman: {
     id: 'shaman',
     name: '哥布林萨满',
@@ -100,11 +111,13 @@ export const MONSTER_DEFINITIONS: Record<string, MonsterDefinition> = {
       defense: [1, 0],
       evasion: 5,
       exp: [12, 1],
-      speed: 9,
+      moveSpeed: 9,
+      attackSpeed: 8,
     },
     special: 'heal',
+    attackRange: 1,
   },
-  
+
   dire_wolf: {
     id: 'dire_wolf',
     name: '恐狼',
@@ -117,11 +130,13 @@ export const MONSTER_DEFINITIONS: Record<string, MonsterDefinition> = {
       defense: [2, 1],
       evasion: 10,
       exp: [20, 2],
-      speed: 12,
+      moveSpeed: 12,
+      attackSpeed: 11,
     },
     special: 'none',
+    attackRange: 1,
   },
-  
+
   orc: {
     id: 'orc',
     name: '兽人战士',
@@ -134,11 +149,13 @@ export const MONSTER_DEFINITIONS: Record<string, MonsterDefinition> = {
       defense: [3, 1],
       evasion: 0,
       exp: [25, 2],
-      speed: 7,
+      moveSpeed: 7,
+      attackSpeed: 8,
     },
     special: 'none',
+    attackRange: 1,
   },
-  
+
   golem: {
     id: 'golem',
     name: '岩石魔像',
@@ -151,11 +168,13 @@ export const MONSTER_DEFINITIONS: Record<string, MonsterDefinition> = {
       defense: [8, 1],
       evasion: 0,
       exp: [30, 1],
-      speed: 4,
+      moveSpeed: 4,
+      attackSpeed: 5,
     },
     special: 'none',
+    attackRange: 1,
   },
-  
+
   shadow_stalker: {
     id: 'shadow_stalker',
     name: '暗影潜伏者',
@@ -168,12 +187,13 @@ export const MONSTER_DEFINITIONS: Record<string, MonsterDefinition> = {
       defense: [2, 1],
       evasion: 40,
       exp: [40, 3],
-      speed: 14,
+      moveSpeed: 14,
+      attackSpeed: 13,
     },
     special: 'none',
+    attackRange: 1,
   },
-  
-  // 新增怪物
+
   fire_imp: {
     id: 'fire_imp',
     name: '火焰小鬼',
@@ -186,11 +206,13 @@ export const MONSTER_DEFINITIONS: Record<string, MonsterDefinition> = {
       defense: [1, 0],
       evasion: 20,
       exp: [18, 2],
-      speed: 13,
+      moveSpeed: 13,
+      attackSpeed: 11,
     },
     special: 'none',
+    attackRange: 1,
   },
-  
+
   necromancer: {
     id: 'necromancer',
     name: '死灵法师',
@@ -203,11 +225,13 @@ export const MONSTER_DEFINITIONS: Record<string, MonsterDefinition> = {
       defense: [3, 1],
       evasion: 10,
       exp: [50, 3],
-      speed: 8,
+      moveSpeed: 8,
+      attackSpeed: 7,
     },
-    special: 'heal', // 可以复活/治疗
+    special: 'heal',
+    attackRange: 1,
   },
-  
+
   dragon_whelp: {
     id: 'dragon_whelp',
     name: '幼龙',
@@ -220,14 +244,17 @@ export const MONSTER_DEFINITIONS: Record<string, MonsterDefinition> = {
       defense: [5, 1],
       evasion: 15,
       exp: [80, 5],
-      speed: 10,
+      moveSpeed: 10,
+      attackSpeed: 10,
     },
     special: 'none',
+    attackRange: 1,
   },
 };
 
 /**
  * 获取指定层可生成的怪物列表
+ * @deprecated Use gameConfig.getAvailableMonsters() instead
  */
 export function getAvailableMonsters(floor: number): MonsterDefinition[] {
   return Object.values(MONSTER_DEFINITIONS).filter(
@@ -237,6 +264,7 @@ export function getAvailableMonsters(floor: number): MonsterDefinition[] {
 
 /**
  * 随机选择一个怪物
+ * @deprecated Use gameConfig.getRandomMonster() instead
  */
 export function getRandomMonster(floor: number): MonsterDefinition | null {
   const available = getAvailableMonsters(floor);

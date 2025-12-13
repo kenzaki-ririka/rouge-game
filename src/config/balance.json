@@ -1,0 +1,90 @@
+{
+    "player": {
+        "defaults": {
+            "maxHp": 150,
+            "maxMp": 50,
+            "maxTorch": 500,
+            "attack": 20,
+            "defense": 0,
+            "moveSpeed": 10,
+            "attackSpeed": 10,
+            "critChance": 5,
+            "critDamage": 200,
+            "evasion": 5,
+            "luck": 10,
+            "hpRegen": 0,
+            "mpRegen": 0,
+            "lifesteal": 0,
+            "thorns": 0,
+            "skillSlots": 2,
+            "arrows": 5,
+            "maxArrows": 20
+        },
+        "statAllocationPoints": 10,
+        "statSteps": {
+            "maxHp": 15,
+            "maxMp": 10,
+            "maxTorch": 20,
+            "attack": 2,
+            "defense": 1,
+            "moveSpeed": 1,
+            "attackSpeed": 1,
+            "critChance": 1,
+            "critDamage": 5,
+            "evasion": 1,
+            "luck": 1,
+            "hpRegen": 1,
+            "mpRegen": 2,
+            "lifesteal": 1,
+            "thorns": 2,
+            "skillSlots": 1
+        }
+    },
+    "combat": {
+        "actionCost": 100,
+        "arrowDamage": 15,
+        "arrowRange": 8
+    },
+    "progression": {
+        "initialNextLevelExp": 30,
+        "levelUpExpMultiplier": 1.4,
+        "levelUpHealPercent": 0.15,
+        "regenTickInterval": 50
+    },
+    "torch": {
+        "consumptionRate": 1,
+        "oilRestorePercent": 0.5
+    },
+    "items": {
+        "goldBase": 10,
+        "goldPerFloor": 5,
+        "potionHealPercent": 0.2,
+        "arrowPickupCount": 3,
+        "spawnRates": {
+            "gold": 0.45,
+            "oil": 0.2,
+            "potion": 0.15,
+            "arrow": 0.2
+        }
+    },
+    "map": {
+        "width": 50,
+        "height": 40,
+        "tileSize": 24,
+        "fovRadius": 8,
+        "fogOfWarEnabled": true,
+        "pillarsCount": 35,
+        "wallSegmentsCount": 12
+    },
+    "shop": {
+        "floors": [
+            1,
+            4,
+            7,
+            10,
+            13,
+            16,
+            19
+        ]
+    }
+}

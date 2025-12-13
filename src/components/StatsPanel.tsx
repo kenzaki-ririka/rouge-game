@@ -3,7 +3,7 @@
 import React from 'react';
 import { Player } from '../types';
 import { SKILL_LIBRARY } from '../data/skills';
-import { getEffectiveAttack, getEffectiveDefense, getEffectiveSpeed } from '../core/CombatSystem';
+import { getEffectiveAttack, getEffectiveDefense, getEffectiveMoveSpeed, getEffectiveAttackSpeed } from '../core/CombatSystem';
 
 interface StatsPanelProps {
   player: Player;
@@ -37,7 +37,8 @@ const ProgressBar: React.FC<ProgressBarProps> = ({ current, max, label, colorCla
 export const StatsPanel: React.FC<StatsPanelProps> = ({ player }) => {
   const effectiveAttack = getEffectiveAttack(player);
   const effectiveDefense = getEffectiveDefense(player);
-  const effectiveSpeed = getEffectiveSpeed(player);
+  const effectiveMoveSpeed = getEffectiveMoveSpeed(player);
+  const effectiveAttackSpeed = getEffectiveAttackSpeed(player);
 
   return (
     <div className="stats-panel panel">
@@ -74,10 +75,10 @@ export const StatsPanel: React.FC<StatsPanelProps> = ({ player }) => {
       {/* 属性列表 */}
       <div className="stat-list">
         <div className="stat-row">
-          <span>等级:</span>
-          <span className="stat-highlight">{player.level}</span>
-          <span>速度:</span>
-          <span className="stat-highlight">{effectiveSpeed}</span>
+          <span>移速:</span>
+          <span className="stat-highlight">{effectiveMoveSpeed}</span>
+          <span>攻速:</span>
+          <span className="stat-highlight">{effectiveAttackSpeed}</span>
         </div>
         <div className="stat-row">
           <span>攻击:</span>

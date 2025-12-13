@@ -1,0 +1,422 @@
+{
+    "goblin": {
+        "id": "goblin",
+        "name": "哥布林",
+        "char": "g",
+        "minFloor": 1,
+        "maxFloor": 5,
+        "stats": {
+            "hp": [
+                15,
+                3
+            ],
+            "attack": [
+                4,
+                1
+            ],
+            "defense": [
+                1,
+                0
+            ],
+            "evasion": 5,
+            "exp": [
+                6,
+                2
+            ],
+            "moveSpeed": 10,
+            "attackSpeed": 10
+        },
+        "special": "none",
+        "attackRange": 1
+    },
+    "slime": {
+        "id": "slime",
+        "name": "黏液怪",
+        "char": "m",
+        "minFloor": 1,
+        "maxFloor": 3,
+        "stats": {
+            "hp": [
+                20,
+                4
+            ],
+            "attack": [
+                3,
+                1
+            ],
+            "defense": [
+                0,
+                0
+            ],
+            "evasion": 0,
+            "exp": [
+                5,
+                1
+            ],
+            "moveSpeed": 6,
+            "attackSpeed": 8
+        },
+        "special": "split",
+        "attackRange": 1
+    },
+    "mini_slime": {
+        "id": "mini_slime",
+        "name": "小黏液怪",
+        "char": "m",
+        "minFloor": 99,
+        "maxFloor": 99,
+        "stats": {
+            "hp": [
+                8,
+                0
+            ],
+            "attack": [
+                2,
+                0
+            ],
+            "defense": [
+                0,
+                0
+            ],
+            "evasion": 0,
+            "exp": [
+                2,
+                0
+            ],
+            "moveSpeed": 8,
+            "attackSpeed": 8
+        },
+        "special": "none",
+        "attackRange": 1
+    },
+    "bat": {
+        "id": "bat",
+        "name": "洞穴蝙蝠",
+        "char": "b",
+        "minFloor": 2,
+        "maxFloor": 5,
+        "stats": {
+            "hp": [
+                12,
+                2
+            ],
+            "attack": [
+                5,
+                1
+            ],
+            "defense": [
+                0,
+                0
+            ],
+            "evasion": 30,
+            "exp": [
+                10,
+                2
+            ],
+            "moveSpeed": 16,
+            "attackSpeed": 12
+        },
+        "special": "erratic",
+        "attackRange": 1
+    },
+    "skeleton": {
+        "id": "skeleton",
+        "name": "骷髅兵",
+        "char": "s",
+        "minFloor": 3,
+        "maxFloor": 7,
+        "stats": {
+            "hp": [
+                30,
+                4
+            ],
+            "attack": [
+                6,
+                1
+            ],
+            "defense": [
+                3,
+                1
+            ],
+            "evasion": 0,
+            "exp": [
+                12,
+                2
+            ],
+            "moveSpeed": 8,
+            "attackSpeed": 9
+        },
+        "special": "none",
+        "attackRange": 1
+    },
+    "shaman": {
+        "id": "shaman",
+        "name": "哥布林萨满",
+        "char": "S",
+        "minFloor": 3,
+        "maxFloor": 6,
+        "stats": {
+            "hp": [
+                22,
+                3
+            ],
+            "attack": [
+                4,
+                1
+            ],
+            "defense": [
+                1,
+                0
+            ],
+            "evasion": 5,
+            "exp": [
+                15,
+                2
+            ],
+            "moveSpeed": 9,
+            "attackSpeed": 8
+        },
+        "special": "heal",
+        "attackRange": 1
+    },
+    "archer": {
+        "id": "archer",
+        "name": "骷髅弓箭手",
+        "char": "A",
+        "minFloor": 4,
+        "maxFloor": 10,
+        "stats": {
+            "hp": [
+                20,
+                3
+            ],
+            "attack": [
+                8,
+                2
+            ],
+            "defense": [
+                1,
+                0
+            ],
+            "evasion": 10,
+            "exp": [
+                18,
+                3
+            ],
+            "moveSpeed": 7,
+            "attackSpeed": 10
+        },
+        "special": "ranged",
+        "attackRange": 6
+    },
+    "fire_mage": {
+        "id": "fire_mage",
+        "name": "火焰法师",
+        "char": "F",
+        "minFloor": 5,
+        "maxFloor": 12,
+        "stats": {
+            "hp": [
+                25,
+                3
+            ],
+            "attack": [
+                12,
+                2
+            ],
+            "defense": [
+                1,
+                0
+            ],
+            "evasion": 5,
+            "exp": [
+                25,
+                4
+            ],
+            "moveSpeed": 6,
+            "attackSpeed": 6
+        },
+        "special": "ranged_aoe",
+        "attackRange": 5
+    },
+    "dire_wolf": {
+        "id": "dire_wolf",
+        "name": "恐狼",
+        "char": "w",
+        "minFloor": 4,
+        "maxFloor": 8,
+        "stats": {
+            "hp": [
+                35,
+                5
+            ],
+            "attack": [
+                8,
+                2
+            ],
+            "defense": [
+                2,
+                1
+            ],
+            "evasion": 12,
+            "exp": [
+                22,
+                3
+            ],
+            "moveSpeed": 14,
+            "attackSpeed": 11
+        },
+        "special": "none",
+        "attackRange": 1
+    },
+    "orc": {
+        "id": "orc",
+        "name": "兽人战士",
+        "char": "O",
+        "minFloor": 5,
+        "maxFloor": 9,
+        "stats": {
+            "hp": [
+                50,
+                6
+            ],
+            "attack": [
+                10,
+                2
+            ],
+            "defense": [
+                4,
+                1
+            ],
+            "evasion": 0,
+            "exp": [
+                30,
+                3
+            ],
+            "moveSpeed": 7,
+            "attackSpeed": 8
+        },
+        "special": "none",
+        "attackRange": 1
+    },
+    "golem": {
+        "id": "golem",
+        "name": "岩石魔像",
+        "char": "G",
+        "minFloor": 6,
+        "maxFloor": 10,
+        "stats": {
+            "hp": [
+                80,
+                8
+            ],
+            "attack": [
+                7,
+                1
+            ],
+            "defense": [
+                10,
+                2
+            ],
+            "evasion": 0,
+            "exp": [
+                40,
+                4
+            ],
+            "moveSpeed": 4,
+            "attackSpeed": 5
+        },
+        "special": "none",
+        "attackRange": 1
+    },
+    "shadow_stalker": {
+        "id": "shadow_stalker",
+        "name": "暗影潜伏者",
+        "char": "h",
+        "minFloor": 7,
+        "maxFloor": 12,
+        "stats": {
+            "hp": [
+                40,
+                4
+            ],
+            "attack": [
+                12,
+                2
+            ],
+            "defense": [
+                2,
+                1
+            ],
+            "evasion": 40,
+            "exp": [
+                50,
+                5
+            ],
+            "moveSpeed": 15,
+            "attackSpeed": 13
+        },
+        "special": "none",
+        "attackRange": 1
+    },
+    "necromancer": {
+        "id": "necromancer",
+        "name": "死灵法师",
+        "char": "N",
+        "minFloor": 8,
+        "maxFloor": 15,
+        "stats": {
+            "hp": [
+                55,
+                4
+            ],
+            "attack": [
+                9,
+                2
+            ],
+            "defense": [
+                3,
+                1
+            ],
+            "evasion": 10,
+            "exp": [
+                60,
+                5
+            ],
+            "moveSpeed": 8,
+            "attackSpeed": 7
+        },
+        "special": "heal",
+        "attackRange": 1
+    },
+    "dragon_whelp": {
+        "id": "dragon_whelp",
+        "name": "幼龙",
+        "char": "D",
+        "minFloor": 10,
+        "maxFloor": 99,
+        "stats": {
+            "hp": [
+                100,
+                8
+            ],
+            "attack": [
+                15,
+                3
+            ],
+            "defense": [
+                6,
+                1
+            ],
+            "evasion": 15,
+            "exp": [
+                100,
+                8
+            ],
+            "moveSpeed": 10,
+            "attackSpeed": 10
+        },
+        "special": "none",
+        "attackRange": 1
+    }
+}

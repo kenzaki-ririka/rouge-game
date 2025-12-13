@@ -40,7 +40,7 @@ import {
   processEnemyTurn,
   updateEffects,
   processStun,
-  getEffectiveSpeed,
+  getEffectiveMoveSpeed,
 } from '../core/CombatSystem';
 import { SKILL_LIBRARY } from '../data/skills';
 import { DEFAULT_DIFFICULTY } from '../data/difficulty';
@@ -668,11 +668,11 @@ export function useGame() {
 
           // 所有存活实体增加AP
           if (player.hp > 0) {
-            player.ap += getEffectiveSpeed(player);
+            player.ap += getEffectiveMoveSpeed(player);
           }
           enemies.forEach(e => {
             if (e.hp > 0) {
-              e.ap += getEffectiveSpeed(e);
+              e.ap += getEffectiveMoveSpeed(e);
             }
           });
 

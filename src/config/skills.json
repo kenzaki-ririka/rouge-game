@@ -1,0 +1,141 @@
+{
+    "fireball": {
+        "id": "fireball",
+        "name": "火球术",
+        "cost": 10,
+        "type": "damage",
+        "description": "向目标区域投掷火球，对2格范围内敌人造成真实伤害。",
+        "damage": 12,
+        "damagePerLevel": 2,
+        "radius": 2,
+        "range": 5
+    },
+    "heal": {
+        "id": "heal",
+        "name": "治疗术",
+        "cost": 12,
+        "type": "heal",
+        "description": "恢复30%最大生命值。",
+        "healPercent": 0.3
+    },
+    "whirlwind": {
+        "id": "whirlwind",
+        "name": "旋风斩",
+        "cost": 15,
+        "type": "damage",
+        "description": "对周围1格内所有敌人造成伤害。",
+        "damage": 10,
+        "damagePerLevel": 1,
+        "radius": 1
+    },
+    "shield_bash": {
+        "id": "shield_bash",
+        "name": "盾牌猛击",
+        "cost": 8,
+        "type": "control",
+        "description": "攻击相邻敌人并有70%概率击晕。",
+        "damage": 6,
+        "damagePerLevel": 1,
+        "stunChance": 0.7,
+        "stunDuration": 30
+    },
+    "battle_shout": {
+        "id": "battle_shout",
+        "name": "战斗怒吼",
+        "cost": 10,
+        "type": "buff",
+        "description": "5回合内攻击+5，防御+3。",
+        "duration": 5,
+        "attackBonus": 5,
+        "defenseBonus": 3
+    },
+    "dash": {
+        "id": "dash",
+        "name": "冲刺",
+        "cost": 5,
+        "type": "utility",
+        "description": "向指定方向快速移动2格。",
+        "distance": 2
+    },
+    "radiance": {
+        "id": "radiance",
+        "name": "光芒",
+        "cost": 8,
+        "type": "utility",
+        "description": "恢复50%火把值。",
+        "torchRestorePercent": 0.5
+    },
+    "toxic_mist": {
+        "id": "toxic_mist",
+        "name": "毒雾",
+        "cost": 15,
+        "type": "damage",
+        "description": "在目标区域创建毒雾，持续8回合造成低伤害。",
+        "instantDamage": 3,
+        "damagePerTurn": 2,
+        "duration": 8,
+        "radius": 3,
+        "range": 5
+    },
+    "flame_zone": {
+        "id": "flame_zone",
+        "name": "烈焰领域",
+        "cost": 18,
+        "type": "damage",
+        "description": "在目标区域创建火焰，持续2回合造成高伤害。",
+        "instantDamage": 15,
+        "damagePerTurn": 8,
+        "duration": 2,
+        "radius": 2,
+        "range": 5
+    },
+    "freeze": {
+        "id": "freeze",
+        "name": "冰冻",
+        "cost": 12,
+        "type": "control",
+        "description": "冻结目标敌人较长时间。",
+        "stunDuration": 80,
+        "range": 5
+    },
+    "entangle": {
+        "id": "entangle",
+        "name": "缠绕",
+        "cost": 10,
+        "type": "control",
+        "description": "用藤蔓缠住敌人，大幅降低移动速度。",
+        "slowPercent": 0.5,
+        "duration": 10,
+        "range": 5
+    },
+    "lightning": {
+        "id": "lightning",
+        "name": "闪电",
+        "cost": 20,
+        "type": "damage",
+        "description": "对单个敌人造成高额真实伤害。",
+        "damage": 25,
+        "damagePerLevel": 3,
+        "range": 7
+    },
+    "magic_missile": {
+        "id": "magic_missile",
+        "name": "魔法飞弹",
+        "cost": 5,
+        "type": "damage",
+        "description": "发射一枚必中的魔法飞弹。",
+        "damage": 6,
+        "damagePerLevel": 1,
+        "range": 6
+    },
+    "ice_nova": {
+        "id": "ice_nova",
+        "name": "冰霜新星",
+        "cost": 22,
+        "type": "control",
+        "description": "以自身为中心释放冰霜，冻结周围2格内所有敌人。",
+        "radius": 2,
+        "stunDuration": 40,
+        "damage": 5
+    }
+}

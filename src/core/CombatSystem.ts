@@ -19,13 +19,13 @@ export interface CombatResult {
  */
 export function getEffectiveAttack(entity: Entity): number {
   let attack = entity.attack;
-  
+
   entity.effects?.forEach(effect => {
     if (effect.attack) {
       attack += effect.attack;
     }
   });
-  
+
   return Math.max(0, attack);
 }
 
@@ -34,28 +34,43 @@ export function getEffectiveAttack(entity: Entity): number {
  */
 export function getEffectiveDefense(entity: Entity): number {
   let defense = entity.defense;
-  
+
   entity.effects?.forEach(effect => {
     if (effect.defense) {
       defense += effect.defense;
     }
   });
-  
+
   return Math.max(0, defense);
 }
 
 /**
- * 获取实体的有效速度（包含效果加成）
+ * 获取实体的有效移动速度（包含效果加成）
  */
-export function getEffectiveSpeed(entity: Entity): number {
-  let speed = entity.speed;
-  
+export function getEffectiveMoveSpeed(entity: Entity): number {
+  let speed = entity.moveSpeed;
+
   entity.effects?.forEach(effect => {
-    if (effect.speed) {
-      speed += effect.speed;
+    if (effect.moveSpeed) {
+      speed += effect.moveSpeed;
     }
   });
-  
+
+  return Math.max(1, speed); // 最低速度为1
+}
+
+/**
+ * 获取实体的有效攻击速度（包含效果加成）
+ */
+export function getEffectiveAttackSpeed(entity: Entity): number {
+  let speed = entity.attackSpeed;
+
+  entity.effects?.forEach(effect => {
+    if (effect.attackSpeed) {
+      speed += effect.attackSpeed;
+    }
+  });
+
   return Math.max(1, speed); // 最低速度为1
 }
 
@@ -77,19 +92,19 @@ export function performAttack(
     attackerDied: false,
     defenderDied: false,
   };
-  
+
   // 闪避判定
   if (defender.evasion > 0 && Math.random() * 100 < defender.evasion) {
     result.hit = false;
     result.evaded = true;
     return result;
   }
-  
+
   // 计算伤害
   const attackPower = getEffectiveAttack(attacker);
   const defensePower = getEffectiveDefense(defender);
   let damage = Math.max(0, attackPower - defensePower);
-  
+
   // 暴击判定（只有玩家可以暴击）
   if ('critChance' in attacker) {
     const player = attacker as Player;
@@ -98,10 +113,10 @@ export function performAttack(
       result.isCrit = true;
     }
   }
-  
+
   result.damage = damage;
   defender.hp -= damage;
-  
+
   // 吸血效果（只有玩家可以吸血）
   if ('lifesteal' in attacker && (attacker as Player).lifesteal > 0) {
     const player = attacker as Player;
@@ -110,23 +125,23 @@ export function performAttack(
     player.hp = Math.min(player.maxHp, player.hp + healAmount);
     result.lifestealHealed = actualHeal;
   }
-  
+
   // 反伤效果
   if ('thorns' in defender && (defender as Player).thorns > 0) {
     const thornsDamage = (defender as Player).thorns;
     attacker.hp -= thornsDamage;
     result.thornsDamage = thornsDamage;
-    
+
     if (attacker.hp <= 0) {
       result.attackerDied = true;
     }
   }
-  
+
   // 检查防御者是否死亡
   if (defender.hp <= 0) {
     result.defenderDied = true;
   }
-  
+
   return result;
 }
 
@@ -142,26 +157,26 @@ export function processEnemyTurn(
   performAttackCallback: (attacker: Enemy, defender: Player) => void
 ): { moved: boolean; attacked: boolean; healed: boolean } {
   const result = { moved: false, attacked: false, healed: false };
-  
+
   if (enemy.hp <= 0) return result;
-  
+
   const dx = player.x - enemy.x;
   const dy = player.y - enemy.y;
   const distance = Math.hypot(dx, dy);
-  
+
   // 只有在视野范围内才行动
   if (distance >= FOV_RADIUS) {
     return result;
   }
-  
+
   // 萨满特殊行为：治疗附近受伤的友军
   if (enemy.special === 'heal' && distance < 5) {
-    const woundedAlly = allEnemies.find(e => 
-      e.hp < e.maxHp && 
-      e !== enemy && 
+    const woundedAlly = allEnemies.find(e =>
+      e.hp < e.maxHp &&
+      e !== enemy &&
       Math.hypot(e.x - enemy.x, e.y - enemy.y) < 4
     );
-    
+
     if (woundedAlly) {
       const healAmount = 10;
       woundedAlly.hp = Math.min(woundedAlly.maxHp, woundedAlly.hp + healAmount);
@@ -169,27 +184,27 @@ export function processEnemyTurn(
       return result;
     }
   }
-  
+
   // 相邻时攻击
   if (distance < 2) {
     performAttackCallback(enemy, player);
     result.attacked = true;
     return result;
   }
-  
+
   // 移动向玩家
   let moveX = Math.sign(dx);
   let moveY = Math.sign(dy);
-  
+
   // 不规则移动特性
   if (enemy.special === 'erratic' && Math.random() < 0.5) {
     moveX = Math.floor(Math.random() * 3) - 1;
     moveY = Math.floor(Math.random() * 3) - 1;
   }
-  
+
   const newX = enemy.x + moveX;
   const newY = enemy.y + moveY;
-  
+
   // 尝试移动
   if (isWalkable(newX, newY) && isPositionEmpty(newX, newY)) {
     enemy.x = newX;
@@ -205,7 +220,7 @@ export function processEnemyTurn(
       result.moved = true;
     }
   }
-  
+
   return result;
 }
 
@@ -214,29 +229,29 @@ export function processEnemyTurn(
  */
 export function updateEffects(entity: Entity): string[] {
   const expiredEffects: string[] = [];
-  
+
   if (!entity.effects) {
     entity.effects = [];
     return expiredEffects;
   }
-  
+
   entity.effects = entity.effects.filter(effect => {
     effect.duration--;
-    
+
     if (effect.duration <= 0) {
       expiredEffects.push(effect.name);
-      
+
       // 处理效果结束时的特殊逻辑
-      if (effect.name === 'entangled' && effect.speed) {
-        // 恢复速度时不需要做任何事，因为getEffectiveSpeed会处理
+      if (effect.name === 'entangled' && effect.moveSpeed) {
+        // 恢复速度时不需要做任何事，因为getEffectiveMoveSpeed会处理
       }
-      
+
       return false;
     }
-    
+
     return true;
   });
-  
+
   return expiredEffects;
 }
 

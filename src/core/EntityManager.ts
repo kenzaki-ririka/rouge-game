@@ -8,12 +8,10 @@ import {
   Room,
   PlayerBaseStats,
   DifficultyMultipliers,
+  EnemySpecial,
 } from '../types';
-import {
-  DEFAULT_PLAYER_STATS,
-  ITEM_EFFECTS,
-} from '../constants';
-import { MONSTER_DEFINITIONS, getRandomMonster } from '../data/monsters';
+import { ITEM_EFFECTS } from '../constants';
+import { gameConfig, CONFIG } from '../config/ConfigManager';
 import { DEFAULT_DIFFICULTY } from '../data/difficulty';
 import {
   getRandomPositionInRoom,
@@ -34,7 +32,8 @@ export function createPlayer(
   x: number = 0,
   y: number = 0
 ): Player {
-  const baseStats = { ...DEFAULT_PLAYER_STATS, ...stats };
+  const defaults = CONFIG.player;
+  const baseStats = { ...defaults, ...stats };
 
   return {
     name: name || '英雄',
@@ -48,7 +47,8 @@ export function createPlayer(
     maxTorch: baseStats.maxTorch,
     attack: baseStats.attack,
     defense: baseStats.defense,
-    speed: baseStats.speed,
+    moveSpeed: baseStats.moveSpeed,
+    attackSpeed: baseStats.attackSpeed,
     evasion: baseStats.evasion,
     critChance: baseStats.critChance,
     critDamage: baseStats.critDamage,
@@ -61,7 +61,7 @@ export function createPlayer(
     skillIds,
     level: 1,
     exp: 0,
-    nextLevelExp: 10,
+    nextLevelExp: CONFIG.progression.initialNextLevelExp,
     gold: 0,
     ap: 0,
     effects: [],
@@ -69,6 +69,7 @@ export function createPlayer(
     isDashing: false,
     arrows: baseStats.arrows,
     maxArrows: baseStats.maxArrows,
+    relics: [],
   };
 }
 
@@ -85,8 +86,8 @@ export function createEnemy(
   difficulty: DifficultyMultipliers = DEFAULT_DIFFICULTY
 ): Enemy | null {
   const definition = typeId
-    ? MONSTER_DEFINITIONS[typeId]
-    : getRandomMonster(floor);
+    ? gameConfig.getMonster(typeId)
+    : gameConfig.getRandomMonster(floor);
 
   if (!definition) return null;
 
@@ -105,7 +106,8 @@ export function createEnemy(
   const exp = Math.floor(
     (stats.exp[0] + floor * stats.exp[1]) * difficulty.exp_multiplier
   );
-  const speed = Math.floor(stats.speed * difficulty.speed_multiplier);
+  const moveSpeed = Math.floor(stats.moveSpeed * difficulty.speed_multiplier);
+  const attackSpeed = Math.floor(stats.attackSpeed * difficulty.speed_multiplier);
 
   return {
     name: definition.name,
@@ -116,10 +118,12 @@ export function createEnemy(
     maxHp: hp,
     attack,
     defense,
-    speed,
+    moveSpeed,
+    attackSpeed,
     evasion: stats.evasion,
     exp,
-    special: definition.special,
+    special: definition.special as EnemySpecial,
+    attackRange: definition.attackRange,
     ap: 0,
     effects: [],
     stunned: 0,
@@ -296,7 +300,8 @@ export function getLevelUpOptions(): Array<{
     { id: 'hpRegen', text: '生命回复 +1', apply: (p: Player) => { p.hpRegen += 1; } },
     { id: 'defense', text: '防御 +1', apply: (p: Player) => { p.defense += 1; } },
     { id: 'attack', text: '攻击 +2', apply: (p: Player) => { p.attack += 2; } },
-    { id: 'speed', text: '速度 +1', apply: (p: Player) => { p.speed += 1; } },
+    { id: 'moveSpeed', text: '移动速度 +1', apply: (p: Player) => { p.moveSpeed += 1; } },
+    { id: 'attackSpeed', text: '攻击速度 +1', apply: (p: Player) => { p.attackSpeed += 1; } },
     { id: 'critChance', text: '暴击率 +1%', apply: (p: Player) => { p.critChance += 1; } },
     { id: 'critDamage', text: '暴击伤害 +5%', apply: (p: Player) => { p.critDamage += 5; } },
     { id: 'evasion', text: '闪避 +1%', apply: (p: Player) => { p.evasion += 1; } },

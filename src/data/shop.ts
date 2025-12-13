@@ -92,11 +92,12 @@ const permanentUpgrades: ShopItem[] = [
   {
     id: 'swift_boots',
     name: '疾风靴',
-    description: '永久增加2点速度',
+    description: '永久增加2点移动速度和攻击速度',
     price: 120,
     category: 'permanent',
     effect: (player) => {
-      player.speed += 2;
+      player.moveSpeed += 2;
+      player.attackSpeed += 2;
     },
   },
   {
@@ -229,11 +230,11 @@ const specialItems: ShopItem[] = [
       if (player.skillIds.length >= player.skillSlots) {
         return; // 没有空位
       }
-      
+
       const availableSkills = getAvailableSkillIds().filter(
         id => !player.skillIds.includes(id)
       );
-      
+
       if (availableSkills.length > 0) {
         const randomSkill = availableSkills[Math.floor(Math.random() * availableSkills.length)];
         player.skillIds.push(randomSkill);
@@ -276,22 +277,22 @@ export function getShopInventory(floor: number, count = 8): ShopItem[] {
   const availableItems = ALL_SHOP_ITEMS.filter(item => {
     // 基础物品始终可用
     if (item.category === 'consumable') return true;
-    
+
     // 永久强化从第1层开始部分可用
     if (item.category === 'permanent') {
       // 随着楼层增加，更多物品解锁
       const unlockChance = Math.min(0.3 + floor * 0.1, 1);
       return Math.random() < unlockChance;
     }
-    
+
     // 特殊物品从第4层开始可用
     if (item.category === 'special') {
       return floor >= 4;
     }
-    
+
     return true;
   });
-  
+
   // 随机选择指定数量的物品
   const shuffled = [...availableItems].sort(() => Math.random() - 0.5);
   return shuffled.slice(0, Math.min(count, shuffled.length));
@@ -311,7 +312,7 @@ export function canBuyItem(player: Player, item: ShopItem): boolean {
  */
 export function buyItem(player: Player, item: ShopItem): boolean {
   if (!canBuyItem(player, item)) return false;
-  
+
   player.gold -= item.price;
   item.effect(player);
   return true;

@@ -14,7 +14,8 @@ export interface Effect {
   duration: number;
   attack?: number;
   defense?: number;
-  speed?: number;
+  moveSpeed?: number;
+  attackSpeed?: number;
 }
 
 // ==================== 实体类型 ====================
@@ -25,7 +26,8 @@ export interface Entity extends Position {
   maxHp: number;
   attack: number;
   defense: number;
-  speed: number;
+  moveSpeed: number;
+  attackSpeed: number;
   evasion: number;
   ap: number;
   effects: Effect[];
@@ -53,15 +55,20 @@ export interface Player extends Entity {
   isDashing: boolean;
   arrows: number;
   maxArrows: number;
+  relics: OwnedRelic[];
 }
+
+// 从relics.ts导入
+import type { OwnedRelic } from './relics';
 
 export interface Enemy extends Entity {
   char: string;
   exp: number;
   special: EnemySpecial;
+  attackRange: number;
 }
 
-export type EnemySpecial = 'none' | 'split' | 'heal' | 'erratic';
+export type EnemySpecial = 'none' | 'split' | 'heal' | 'erratic' | 'ranged' | 'ranged_aoe';
 
 // ==================== 物品类型 ====================
 
@@ -131,7 +138,8 @@ export interface MonsterStats {
   defense: [number, number];
   evasion: number;
   exp: [number, number];
-  speed: number;
+  moveSpeed: number;
+  attackSpeed: number;
 }
 
 export interface MonsterDefinition {
@@ -142,6 +150,7 @@ export interface MonsterDefinition {
   maxFloor: number;
   stats: MonsterStats;
   special: EnemySpecial;
+  attackRange: number;
 }
 
 // ==================== 难度系统 ====================
@@ -257,7 +266,8 @@ export interface PlayerBaseStats {
   maxTorch: number;
   attack: number;
   defense: number;
-  speed: number;
+  moveSpeed: number;
+  attackSpeed: number;
   critChance: number;
   critDamage: number;
   evasion: number;
@@ -267,6 +277,8 @@ export interface PlayerBaseStats {
   lifesteal: number;
   thorns: number;
   skillSlots: number;
+  arrows: number;
+  maxArrows: number;
 }
 
 // ==================== 事件类型 ====================
